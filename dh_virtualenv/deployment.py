@@ -156,11 +156,11 @@ class Deployment(object):
             subprocess.check_call([python, 'setup.py', 'test'], cwd=self.sourcedirectory)
 
     def fix_shebangs(self):
-        """Translate /usr/bin/python and /usr/bin/env python sheband
-        lines to point to our virtualenv python.
+        """Translate shebang lines: '.*bin/python', '.*/bin/env python' and 'python'
+        to point to our virtualenv python.
         """
         grep_proc = subprocess.Popen(
-            ['grep', '-l', '-r', '-e', r'^#!.*bin/\(env \)\?python',
+            ['grep', '-l', '-r', '-e', r'^#!\(python\|.*bin/\(env \)\?python\)',
              self.bin_dir],
             stdout=subprocess.PIPE
         )
@@ -172,7 +172,7 @@ class Deployment(object):
         pythonpath = os.path.join(self.virtualenv_install_dir, 'bin/python')
         for f in files.split('\n'):
             subprocess.check_call(
-                ['sed', '-i', r's|^#!.*bin/\(env \)\?python|#!{0}|'.format(
+                ['sed', '-i', r's~^#!\(python\|.*bin/\(env \)\?python\)~#!{0}~'.format(
                     pythonpath),
                  f])
 

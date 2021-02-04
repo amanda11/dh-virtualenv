@@ -27,6 +27,7 @@ ROOT_ENV_KEY = 'DH_VIRTUALENV_INSTALL_ROOT'
 DEFAULT_INSTALL_DIR = '/opt/venvs/'
 PYTHON_INTERPRETERS = ['python', 'pypy', 'ipy', 'jython']
 _PYTHON_INTERPRETERS_REGEX = r'\(' + r'\|'.join(PYTHON_INTERPRETERS) + r'\)'
+VIRTUALENV_VERSION_REGEX = re.compile(r'^(?:virtualenv\s*)?(?P<number>\d+(?:\.\d+)*)(?:\s+.*)?$')
 
 
 class Deployment(object):
@@ -134,7 +135,27 @@ class Deployment(object):
             if self.use_system_packages:
                 virtualenv.append('--system-site-packages')
             else:
-                virtualenv.append('--no-site-packages')
+                venv_version = virtualenv[:]  # Copy
+                venv_version.append('--version')
+                sp = subprocess.Popen(venv_version, stdout=subprocess.PIPE)
+                version_string = sp.stdout.read()
+                # virtualenv < 20 printed out just the version:
+                # 15.0.3
+                # But virtualenv 20 prints out:
+                # virtualenv 20.x from /usr/local/lib/python3
+                version = None
+                version_m = VIRTUALENV_VERSION_REGEX.match(version_string.rstrip('\n'))
+                if version_m:
+                    clean_version_string = version_m.group('number')
+                    print(clean_version_string)
+                    version = tuple(map(int, clean_version_string.split('.')))
+                    print("final version: {}".format(version))
+                # This became the default in version 1.7:
+                # https://virtualenv.pypa.io/en/legacy/changes.html#v1-7-2011-11-30
+                # so explicitly specifying it is not necessary, and breaks on
+                # more recent versions of virtualenv, possibly version 16+
+                if version is not None and version < (16,):
+                    virtualenv.append('--no-site-packages')
 
             if self.setuptools:
                 virtualenv.append('--setuptools')

@@ -98,10 +98,6 @@ def get_default_parser():
                       "you'll install this program by using the --preinstall "
                       "argument. The replacement is expected to be found in "
                       "the virtualenv's bin/ directory.")
-    parser.add_option('--pip-binary', default=None,
-                      help="Path to custom pip binary which should be used "
-                           "and  copied to dh virtualenv. Should be used in "
-                           "combination with virtualenv --no-pip flag")
     parser.add_option('--force-pip-version', default=None,
                       help="Force upgrade a specific pip version in dh "
                            "dh-virtualenv")

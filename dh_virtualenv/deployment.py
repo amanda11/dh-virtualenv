@@ -48,7 +48,8 @@ class Deployment(object):
                  use_system_packages=False,
                  skip_install=False,
                  install_suffix=None,
-                 requirements_filename='requirements.txt'):
+                 requirements_filename='requirements.txt',
+                 upgrade_pip_to=''):
 
         self.package = package
         install_root = os.environ.get(ROOT_ENV_KEY, DEFAULT_INSTALL_DIR)
@@ -69,6 +70,7 @@ class Deployment(object):
 
         self.preinstall = preinstall
         self.upgrade_pip = upgrade_pip
+        self.upgrade_pip_to = upgrade_pip_to
         self.extra_virtualenv_arg = extra_virtualenv_arg
         self.log_file = tempfile.NamedTemporaryFile()
         self.verbose = verbose
@@ -121,7 +123,8 @@ class Deployment(object):
                    use_system_packages=options.use_system_packages,
                    skip_install=options.skip_install,
                    install_suffix=options.install_suffix,
-                   requirements_filename=options.requirements_filename)
+                   requirements_filename=options.requirements_filename,
+                   upgrade_pip_to=options.upgrade_pip_to)
 
     def clean(self):
         shutil.rmtree(self.debian_root)
@@ -187,9 +190,14 @@ class Deployment(object):
         # a custom package to install dependencies (think something
         # along lines of setuptools), but that does not get installed
         # by default virtualenv.
-        if self.upgrade_pip:
+        if self.upgrade_pip or self.upgrade_pip_to:
             # First, bootstrap pip with a reduced option set (well-supported options)
-            subprocess.check_call(self.pip_preinstall_prefix + self.pip_upgrade_args + ['-U', 'pip'])
+            cmd = self.pip_preinstall_prefix + self.pip_upgrade_args
+            if not self.upgrade_pip_to or self.upgrade_pip_to == 'latest':
+                cmd += ['-U', 'pip']
+            else:
+                cmd += ['pip==' + self.upgrade_pip_to]
+            subprocess.check_call(cmd)
         if self.preinstall:
             subprocess.check_call(self.pip_preinstall(*self.preinstall))
 

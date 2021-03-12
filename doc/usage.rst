@@ -131,6 +131,14 @@ few command line options:
 
    *Note:* This can produce non-repeatable builds.
 
+.. option:: --upgrade-pip-to <VERSION>
+
+   Same as :option:`--upgrade-pip`, but install an explicitly provided version.
+   You can specify ``latest`` to get the exact same behaviour as with the simple option.
+
+   *Note:* This can be used for more repeatable builds that do not have the risk of
+   breaking on a new ``pip`` release.
+
 .. cmdoption:: --index-url <URL>
 
    Base URL of the PyPI server. This flag can be used to pass in a

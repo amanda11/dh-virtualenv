@@ -98,6 +98,9 @@ def get_default_parser():
                       "you'll install this program by using the --preinstall "
                       "argument. The replacement is expected to be found in "
                       "the virtualenv's bin/ directory.")
+    parser.add_option('--force-pip-version', default=None,
+                      help="Force upgrade a specific pip version in dh "
+                           "dh-virtualenv")
     parser.add_option('--upgrade-pip', action='store_true', default=False,
                       help='Upgrade pip to the latest available version')
     parser.add_option('--extra-pip-arg', action='append',

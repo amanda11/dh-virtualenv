@@ -36,6 +36,7 @@ class Deployment(object):
                  extra_urls=[],
                  preinstall=[],
                  pip_tool='pip',
+                 force_pip_version=None,
                  upgrade_pip=False,
                  index_url=None,
                  setuptools=False,
@@ -66,6 +67,8 @@ class Deployment(object):
 
         self.bin_dir = os.path.join(self.package_dir, 'bin')
         self.local_bin_dir = os.path.join(self.package_dir, 'local', 'bin')
+
+        self.force_pip_version = force_pip_version
 
         self.preinstall = preinstall
         self.upgrade_pip = upgrade_pip
@@ -109,6 +112,7 @@ class Deployment(object):
                    extra_urls=options.extra_index_url,
                    preinstall=options.preinstall,
                    pip_tool=options.pip_tool,
+                   force_pip_version=options.force_pip_version,
                    upgrade_pip=options.upgrade_pip,
                    index_url=options.index_url,
                    setuptools=options.setuptools,
@@ -172,6 +176,33 @@ class Deployment(object):
 
         virtualenv.append(self.package_dir)
         subprocess.check_call(virtualenv)
+
+        if self.force_pip_version:
+            venv_pip_path = self.venv_bin('pip')
+            print("Forcing / upgrading pip version inside venv to %s..." % (self.force_pip_version))
+            output = subprocess.check_output([venv_pip_path, 'install', '--upgrade',
+                                              'pip==%s' % (self.force_pip_version)]).strip()
+            print('Output: %s' % (output))
+
+        # To make troubleshooting, etc. easier, we also print which versions
+        # were copied and used into venv
+        venv_python_path = self.venv_bin('python')
+        venv_virtualenv_path = self.venv_bin('virtualenv')
+        venv_pip_path = self.venv_bin('pip')
+
+        print('dh-virualenv versions info')
+
+        if os.path.exists(venv_python_path):
+            output = subprocess.check_output([venv_python_path, '--version']).strip()
+            print('Using Python: %s' % (output))
+
+        if os.path.exists(venv_virtualenv_path):
+            output = subprocess.check_output([venv_virtualenv_path, '--version']).strip()
+            print('Using virtualenv: %s' % (output))
+
+        if os.path.exists(venv_pip_path):
+            output = subprocess.check_output([venv_pip_path, '--version']).strip()
+            print('Using pip: %s' % (output))
 
     def venv_bin(self, binary_name):
         return os.path.abspath(os.path.join(self.bin_dir, binary_name))
